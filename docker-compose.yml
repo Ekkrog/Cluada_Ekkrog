@@ -1,0 +1,20 @@
+# Cluada — base Adakor
+# Lancer :   docker compose up -d
+# Arrêter :  docker compose down        (les données persistent dans le volume)
+# Reset :    docker compose down -v     (supprime le volume → le dump est rechargé au prochain up)
+services:
+  db:
+    image: postgres:16
+    container_name: adakor-db
+    environment:
+      POSTGRES_USER: ada
+      POSTGRES_PASSWORD: ada
+      POSTGRES_DB: adakor
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./adakor.sql:/docker-entrypoint-initdb.d/01-adakor.sql
+      - adakor-data:/var/lib/postgresql/data
+
+volumes:
+  adakor-data:
