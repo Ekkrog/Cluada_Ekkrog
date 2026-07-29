@@ -53,7 +53,7 @@ SELECT employe_id, to_char(horodatage, 'YY-MM-DD') AS date, to_char(horodatage, 
 WHERE EXTRACT(HOUR from horodatage) >= 21
 ORDER BY horodatage; 
 
--- L'employe avec l'id 15 travaille peut être de nuit
+-- L'employe avec l'id 15 
 
 -- 9. Isole les entrées après 21h. Qui ? Quelle porte ? Quelles dates ?
 
@@ -70,25 +70,26 @@ ORDER BY horodatage;
 SELECT conge.employe_id, conge.date_debut AS debut_conge, conge.date_fin AS fin_conge, horodatage FROM badgeage
 JOIN conge ON badgeage.employe_id = conge.employe_id
 WHERE badgeage.employe_id = 15 AND extract(hour from horodatage) >= 21
-GROUP BY conge.employe_id, conge.date_debut, conge.date_fin, badgeage.horodatage
-HAVING conge.date_debut <= '2026-06-16' AND conge.date_fin >= '2026-06-18';
+AND conge.date_debut <= '2026-06-16' AND conge.date_fin >= '2026-06-18';
 
 -- 11. Le badge a aussi servi à la machine à café ces soirs-là. Prouve-le.
 
 SELECT badgeage.employe_id, transaction_cafe.horodatage AS transactionCafe FROM badgeage JOIN transaction_cafe ON badgeage.employe_id = transaction_cafe.employe_id
 WHERE badgeage.employe_id = 15
+AND extract(hour FROM transaction_cafe.horodatage) >= 21
 GROUP BY badgeage.employe_id, transaction_cafe.horodatage
-HAVING extract(hour FROM transaction_cafe.horodatage) >= 21;
+HAVING extract(hour FROM transaction_cafe.horodatage) >= 21
+ORDER BY transaction_cafe.horodatage;
 
 
 -- 12. La question à 1 million : qui était physiquement présent·e ces soirs-là ? Le badge de la porte peut s'emprunter… mais on vient en voiture avec son propre badge de parking. Croise les accès parking avec les horaires des badgeages suspects.
 
-SELECT DISTINCT e.id, e.nom, ap.horodatage AS acces_parking FROM acces_parking ap
+SELECT DISTINCT e.id, e.nom, ap.horodatage AS acces_parking, sens
+FROM acces_parking ap
 JOIN employe e ON e.id = ap.employe_id
 WHERE DATE(ap.horodatage) BETWEEN '2026-06-16' AND '2026-06-18' 
 AND extract(hour from ap.horodatage) >= 21
 AND ap.sens = 'entree';
-
 
 -- 13. Vérifie ton hypothèse : la personne suspectée a-t-elle badgé à une porte avec son propre badge ces soirs-là ? Que faisait-elle les jours en question (ses badgeages en journée) ?
 
