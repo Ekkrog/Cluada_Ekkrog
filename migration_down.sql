@@ -1,0 +1,4 @@
+
+DROP TABLE IF EXISTS visite;
+DROP TABLE IF EXISTS visiteurs;
+DROP TYPE IF EXISTS motif_visite;
