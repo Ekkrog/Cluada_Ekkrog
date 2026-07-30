@@ -1,4 +1,4 @@
-# Cluada — base Adakor
+ # Cluada — base Adakor
 # Lancer :   docker compose up -d
 # Arrêter :  docker compose down        (les données persistent dans le volume)
 # Reset :    docker compose down -v     (supprime le volume → le dump est rechargé au prochain up)

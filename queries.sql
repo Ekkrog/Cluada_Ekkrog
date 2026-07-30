@@ -1,8 +1,8 @@
+-- Active: 1785420028362@@127.0.0.1@5432@adakor
 -- 1. La liste des employé·e·s avec le nom de leur service, triée par service puis par nom.
 
 SELECT employe.nom, service.nom from employe
 JOIN service on employe.service_id = service.id
-GROUP BY service.nom, employe.nom
 ORDER BY service.nom, employe.nom;
 
 -- 2. Le nombre d'employé·e·s par service.
@@ -13,7 +13,7 @@ GROUP BY service.nom;
 
 -- 3. Le chiffre d'affaires total de la machine à café sur la période, en euros.
 
-SELECT sum((prix_centimes)*100) AS CA FROM transaction_cafe;
+SELECT round(sum(prix_centimes)/100.0,2) AS CA FROM transaction_cafe;
 
 -- 4. Le nombre de cafés tirés par boisson — quelle est la boisson la plus populaire chez Adakor ?
 
@@ -37,7 +37,7 @@ count(transaction_cafe.boisson) / count(DISTINCT date(transaction_cafe.horodatag
 FROM transaction_cafe
 LEFT JOIN employe ON transaction_cafe.employe_id = employe.id
 GROUP BY employe.id, employe.nom, employe.prenom
-ORDER BY moyenne DESC;
+HAVING count(transaction_cafe.id) * 1.0 / count(DISTINCT DATE(transaction_cafe.horodatage)) > 4;
 
 -- 7. Pour la personne repérée en 6 : à quelles heures tire-t-elle ses cafés ? Toutes les boissons sont-elles pour elle ? (Indice : personne ne boit 4 cappuccinos ET 3 chocolats ET 2 thés par jour. Hypothèse plausible : elle badge pour tout son open space. Une anomalie n'est pas une preuve.)
 
@@ -49,7 +49,7 @@ ORDER BY horodatage;
 
 -- 8. Tous les badgeages effectués après 21h, triés par date. Observe les sens : des sorties tardives, c'est normal. Et le reste ?
 
-SELECT employe_id, to_char(horodatage, 'YY-MM-DD') AS date, to_char(horodatage, 'HH24:MM:SS') AS heure, sens FROM badgeage
+SELECT to_char(horodatage, 'YY-MM-DD') AS date, to_char(horodatage, 'HH24:MM:SS') AS heure, sens FROM badgeage
 WHERE EXTRACT(HOUR from horodatage) >= 21
 ORDER BY horodatage; 
 
@@ -81,7 +81,6 @@ GROUP BY badgeage.employe_id, transaction_cafe.horodatage
 HAVING extract(hour FROM transaction_cafe.horodatage) >= 21
 ORDER BY transaction_cafe.horodatage;
 
-
 -- 12. La question à 1 million : qui était physiquement présent·e ces soirs-là ? Le badge de la porte peut s'emprunter… mais on vient en voiture avec son propre badge de parking. Croise les accès parking avec les horaires des badgeages suspects.
 
 SELECT DISTINCT e.id, e.nom, ap.horodatage AS acces_parking, sens
@@ -98,3 +97,10 @@ WHERE employe_id = 16
 GROUP BY employe_id, porte, sens, horodatage
 HAVING date(horodatage) BETWEEN '2026-06-16' AND '2026-06-18'
 ORDER BY date(horodatage), extract(HOUR from horodatage);
+
+SELECT e.nom nom_employe, e.prenom prenom_employe, visiteurs.nom visiteur_nom, visiteurs.prenom visiteur_prenom, date_visite FROM visite 
+JOIN employe e ON visite.id_employe = e.id
+JOIN visiteurs on visite.id_visiteurs = visiteurs.id;
+
+SELECT e.prenom, e.nom, count(date_visite) nbVisites from employe e JOIN visite ON e.id = visite.id_employe
+GROUP BY e.nom, e.prenom; 
